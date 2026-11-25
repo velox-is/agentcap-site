@@ -78,10 +78,17 @@ TASK=$(npx agentcap task new --name my-run --max-tokens 200000)
     b.disabled = true;
     n.textContent = 'sending…';
     try {
+      // Relative on purpose: it resolves against whichever origin served the
+      // page, so attaching agentcap.dev later needs no change here. referrer is
+      // captured now because launch attribution is not recoverable retroactively.
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ email: e.value }),
+        body: JSON.stringify({
+          email: e.value,
+          referrer: document.referrer || null,
+          origin: location.origin,
+        }),
       });
       const data = await res.json();
       n.textContent = res.ok ? 'Saved. Thank you.' : (data.error || 'Something went wrong.');
