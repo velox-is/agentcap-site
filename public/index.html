@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>agentcap — local budget caps for AI agents</title>
+<meta name="description" content="A local proxy that counts what your agents spend and kills them at the cap. Loopback only, no account, no telemetry.">
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #0b0c0e; color: #e6e7ea;
+    font: 16px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
+    display: flex; min-height: 100vh; align-items: center; justify-content: center;
+  }
+  main { width: min(680px, 92vw); padding: 48px 0; }
+  h1 { font-size: 28px; margin: 0 0 8px; letter-spacing: -0.02em; }
+  .sub { color: #9aa0a6; margin: 0 0 32px; }
+  code, pre { background: #16181c; border: 1px solid #24272c; border-radius: 6px; }
+  pre { padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.5; }
+  code { padding: 1px 5px; font-size: 0.9em; }
+  ul { padding-left: 20px; color: #c9ccd1; }
+  li { margin: 6px 0; }
+  a { color: #7fb3ff; }
+  form { display: flex; gap: 8px; margin: 32px 0 8px; }
+  input[type=email] {
+    flex: 1; padding: 10px 12px; font: inherit; font-size: 14px;
+    background: #16181c; color: #e6e7ea; border: 1px solid #2b2f36; border-radius: 6px;
+  }
+  button {
+    padding: 10px 18px; font: inherit; font-size: 14px; cursor: pointer;
+    background: #e6e7ea; color: #0b0c0e; border: 0; border-radius: 6px; font-weight: 600;
+  }
+  button:disabled { opacity: 0.6; cursor: default; }
+  .note { color: #7d838a; font-size: 13px; min-height: 20px; }
+  footer { margin-top: 40px; color: #6a7077; font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>agentcap</h1>
+  <p class="sub">Local-first observability and hard budget control for AI agents.</p>
+
+  <p>Point any agent's base URL at a local proxy. Every request is counted, priced and checked against a cap; a breach closes the stream and marks the task dead. Nothing leaves the machine — no account, no cloud, no telemetry.</p>
+
+  <pre>npx agentcap init
+npx agentcap start
+
+TASK=$(npx agentcap task new --name my-run --max-tokens 200000)
+# then send x-agentcap-task: $TASK</pre>
+
+  <ul>
+    <li>Per-task caps on tokens, steps, USD and wall clock, enforced mid-stream.</li>
+    <li>Late usage from OTel spans is applied and marked, never dropped.</li>
+    <li>Loopback only. Refuses to bind elsewhere.</li>
+  </ul>
+
+  <form id="f">
+    <input type="email" id="e" name="email" required placeholder="you@example.com" autocomplete="email">
+    <button id="b" type="submit">Get launch updates</button>
+  </form>
+  <p class="note" id="n">One email when 0.2 ships. Nothing else.</p>
+
+  <footer>
+    <a href="https://github.com/velox-is/agentcap">github.com/velox-is/agentcap</a>
+    &nbsp;·&nbsp;
+    <a href="https://github.com/velox-is/agentcap/blob/main/docs/case-study.md">why the cap numbers are honest</a>
+    &nbsp;·&nbsp; MIT
+  </footer>
+</main>
+<script>
+  const f = document.getElementById('f');
+  const e = document.getElementById('e');
+  const b = document.getElementById('b');
+  const n = document.getElementById('n');
+  f.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    b.disabled = true;
+    n.textContent = 'sending…';
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email: e.value }),
+      });
+      const data = await res.json();
+      n.textContent = res.ok ? 'Saved. Thank you.' : (data.error || 'Something went wrong.');
+      if (res.ok) f.reset();
+    } catch {
+      n.textContent = 'Network error. Try again.';
+    } finally {
+      b.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+name = "agentcap"
+pages_build_output_dir = "public"
+compatibility_date = "2026-11-01"
+
+[[kv_namespaces]]
+binding = "SIGNUPS"
+id = "41c5bcc4ea794e99994bff0f9ca64c88"
