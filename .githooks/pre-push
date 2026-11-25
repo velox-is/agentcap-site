@@ -1,0 +1,15 @@
+#!/bin/sh
+# Same guard as the main repo: this is Veloxis's repo, always.
+set -eu
+
+url=$(git remote get-url origin)
+case "$url" in
+  *velox-is/agentcap-site*) ;;
+  *) echo "wrong remote: $url" >&2; exit 1 ;;
+esac
+
+email=$(git config user.email)
+case "$email" in
+  *velox-is@users.noreply.github.com) ;;
+  *) echo "wrong author email: $email" >&2; exit 1 ;;
+esac
